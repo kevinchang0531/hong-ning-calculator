@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>愛狗房仲張宏寧｜全能房產計算機</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" />
+  <style>
+    /* ── Tab & Option Buttons ── */
+    .tab-btn {
+      flex: 1 1 auto;
+      min-width: calc(33% - 0.5rem);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      background: #f3f4f6;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { background: #e5e7eb; }
+    .tab-btn.active {
+      background: #dc2626;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(220,38,38,.35);
+    }
+
+    .opt-btn {
+      padding: 0.45rem 0.85rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid #e5e7eb;
+      background: #f9fafb;
+      color: #4b5563;
+      transition: all 0.15s;
+    }
+    .opt-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
+    .opt-btn.active {
+      background: #dc2626;
+      color: #fff;
+      border-color: #dc2626;
+    }
+
+    /* ── Form Fields ── */
+    .field-input {
+      width: 100%;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 0.6rem;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border 0.15s, box-shadow 0.15s;
+      background: #fff;
+      color: #1e293b;
+    }
+    .field-input:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+    }
+
+    /* ── Calc Button ── */
+    .calc-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.8rem 1rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      transition: opacity 0.15s, transform 0.1s;
+      box-shadow: 0 4px 14px rgba(220,38,38,.35);
+    }
+    .calc-btn:hover { opacity: .9; }
+    .calc-btn:active { transform: scale(.98); }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: 1.25rem;
+      box-shadow: 0 1px 8px rgba(0,0,0,.07);
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .field-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 0.35rem;
+      margin-top: 1rem;
+    }
+    .opt-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    /* ── Result Box ── */
+    .result-box {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.875rem;
+      border: 1.5px solid #e5e7eb;
+      background: #f8fafc;
+      animation: fadeIn .25s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
+
+    /* ── Helpers ── */
+    .divider { border: none; border-top: 1px solid #f1f5f9; margin: 0.75rem 0; }
+    .row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding: 0.2rem 0; }
+    .row .lbl { color: #64748b; }
+    .row .val { font-weight: 600; color: #1e293b; }
+    .highlight-box {
+      margin-top: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .highlight-box .sub { font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.3rem; }
+    .highlight-box .big { font-size: 1.5rem; font-weight: 800; }
+    .note { font-size: 0.72rem; color: #94a3b8; margin-top: 0.6rem; }
+
+    /* ── Formula Card ── */
+    .formula-card {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      color: #92400e;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-8" style="font-family: 'PingFang TC', 'Noto Sans TC', sans-serif;">
+
+  <!-- ══════════ HEADER ══════════ -->
+  <header class="bg-slate-800 text-white shadow-lg sticky top-0 z-20">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+      <span style="font-size:1.8rem; line-height:1;">🐾</span>
+      <div class="flex-1">
+        <h1 class="text-base font-bold tracking-wide leading-tight">愛狗房仲張宏寧</h1>
+        <p class="text-xs text-slate-400 leading-tight">全能房產計算機</p>
+      </div>
+      <img src="hong-ning.jpg" alt="張宏寧"
+           class="w-11 h-11 rounded-full object-cover object-top border-2 border-slate-600 shadow"
+           onerror="this.style.display='none'" />
+    </div>
+  </header>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="max-w-3xl mx-auto mt-5 px-4 space-y-4 pb-6">
+
+    <!-- Tab Nav -->
+    <div class="bg-white rounded-2xl shadow-sm p-2 flex flex-wrap gap-1.5">
+      <button class="tab-btn active" data-tab="tax">📊 房地合一</button>
+      <button class="tab-btn" data-tab="afford">💰 購屋能力</button>
+      <button class="tab-btn" data-tab="loan">🏦 房貸試算</button>
+      <button class="tab-btn" data-tab="fees">💸 買賣雜費</button>
+      <button class="tab-btn" data-tab="area">📐 坪數換算</button>
+      <button class="tab-btn" data-tab="parking">🚗 車位拆算</button>
+    </div>
+
+    <!-- ── Tab 1：房地合一 ── -->
+    <section id="tab-tax" class="tab-panel card">
+      <div class="card-title">📊 房地合一稅試算</div>
+
+      <label class="field-label">賣出總價（萬）</label>
+      <input id="tax-sell" class="field-input" type="number" placeholder="例如：2000" oninput="updateDeductDisplay()" />
+
+      <label class="field-label">取得成本（萬）</label>
+      <input id="tax-cost" class="field-input" type="number" placeholder="例如：1500" />
+
+      <label class="field-label">土地漲價總數額（萬）</label>
+      <input id="tax-land" class="field-input" type="number" placeholder="參考土增稅單" />
+
+      <label class="field-label">成本費用扣除</label>
+      <div class="opt-row" id="g-tax-deduct">
+        <button class="opt-btn active" data-val="default">預設 3%</button>
+        <button class="opt-btn" data-val="itemized">列舉憑證</button>
+      </div>
+      <div id="deduct-auto" class="text-xs text-slate-500 mt-1">系統計算：$0（成交價 3%，上限 30 萬）</div>
+      <div id="deduct-manual" class="hidden mt-1">
+        <input id="tax-deduct-val" class="field-input" type="number" placeholder="請輸入實際費用（萬）" />
+      </div>
+
+      <label class="field-label">持有期間</label>
+      <div class="opt-row" id="g-tax-period">
+        <button class="opt-btn" data-val="0.45">2 年內</button>
+        <button class="opt-btn active" data-val="0.35">2–5 年</button>
+        <button class="opt-btn" data-val="0.20">5–10 年</button>
+        <button class="opt-btn" data-val="0.15">10 年＋</button>
+        <button class="opt-btn" data-val="owner6y" style="min-width:100%">自用滿 6 年（400 萬免稅 ＋ 10% 稅率）</button>
+      </div>
+
+      <button class="calc-btn mt-5" onclick="calcTax()">開始試算</button>
+      <div id="r-tax" class="result-box hidden"></div>
+    </section>
+
+    <!-- ── Tab 2：購屋能力 ── -->
+    <section id="tab-afford" class="tab-panel card hidden">
+      <div class="card-title">💰 購屋能力試算</div>
+
+      <label class="field-label">月收入（萬）</label>
+      <input id="af-income" class="field-input" type="number" placeholder="例如：6" />
+
+      <label class="field-label">現有自備款（萬）</label>
+      <input id="af-down" class="field-input" type="number" placeholder="例如：200" />
+
+      <label class="field-label">負債比上限（月收佔比）</label>
+      <div class="opt-row" id="g-af-ratio">
+        <button class="opt-btn" data-val="0.33">保守 33%</button>
+        <button class="opt-btn active" data-val="0.50">積極 50%</button>
+        <button class="opt-btn" data-val="0.60">緊繃 60%</button>
+      </div>
+
+      <label class="field-label">貸款年限</label>
+      <div class="opt-row" id="g-af-term">
+        <button class="opt-btn" data-val="20">20 年</button>
+        <button class="opt-btn active" data-val="30">30 年</button>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">* 試算利率以 2.3% 估計</p>
+
+      <button class="calc-btn mt-5" onclick="calcAfford()">計算購屋能力</button>
+      <div id="r-afford" class="result-box hidden"></div>
+    </section>
+
+    <!-- ── Tab 3：房貸試算 ── -->
+    <section id="tab-loan" class="tab-panel card hidden">
+      <div class="card-title">🏦 房貸試算</div>
+
+      <label class="field-label">貸款金額（萬）</label>
+      <input id="ln-amount" class="field-input" type="number" placeholder="例如：1000" />
+
+      <label class="field-label">年利率（%）</label>
+      <input id="ln-rate" class="field-input" type="number" value="2.2" step="0.1" />
+
+      <label class="field-label">貸款期限（年）</label>
+      <input id="ln-term" class="field-input" type="number" value="30" />
+
+      <label class="field-label">寬限期（年）</label>
+      <input id="ln-grace" class="field-input" type="number" value="0" placeholder="0" />
+
+      <button class="calc-btn mt-5" onclick="calcLoan()">房貸試算</button>
+      <div id="r-loan" class="result-box hidden"></div>
+    </section>
+
+    <!-- ── Tab 4：買賣雜費 ── -->
+    <section id="tab-fees" class="tab-panel card hidden">
+      <div class="card-title">💸 買賣雜費試算</div>
+
+      <label class="field-label">成交總價（萬）</label>
+      <input id="fee-price" class="field-input" type="number" placeholder="例如：2000" />
+
+      <label class="field-label">您的身分</label>
+      <div class="opt-row" id="g-fee-role">
+        <button class="opt-btn active" data-val="buyer">買方（Buyer）</button>
+        <button class="opt-btn" data-val="seller">賣方（Seller）</button>
+      </div>
+
+      <button class="calc-btn mt-5" onclick="calcFees()">試算雜費</button>
+      <div id="r-fees" class="result-box hidden"></div>
+    </section>
+
+    <!-- ── Tab 5：坪數換算 ── -->
+    <section id="tab-area" class="tab-panel card hidden">
+      <div class="card-title">📐 坪數換算</div>
+
+      <div class="formula-card">
+        <div class="font-semibold mb-1">換算公式</div>
+        <div>1 坪 ＝ 3.30579 平方公尺</div>
+        <div>1 平方公尺 ＝ 0.3025 坪</div>
+      </div>
+
+      <label class="field-label">坪數（坪）</label>
+      <input id="area-ping" class="field-input" type="number" placeholder="0" oninput="pingToM2()" />
+
+      <label class="field-label">平方公尺（m²）</label>
+      <input id="area-m2" class="field-input" type="number" placeholder="0" oninput="m2ToPing()" />
+    </section>
+
+    <!-- ── Tab 6：車位拆算 ── -->
+    <section id="tab-parking" class="tab-panel card hidden">
+      <div class="card-title">🚗 車位拆算</div>
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        實價登錄或廣告傳單常包含車位價格與坪數，此功能可計算出「扣除車位後的真實房屋單價」。
+      </p>
+
+      <label class="field-label">房屋總價（含車位）—萬元</label>
+      <input id="pk-total-price" class="field-input" type="number" placeholder="例如：2500" />
+
+      <label class="field-label">權狀總坪數（含車位）—坪</label>
+      <input id="pk-total-ping" class="field-input" type="number" placeholder="例如：50" />
+
+      <label class="field-label">車位價格—萬元</label>
+      <input id="pk-car-price" class="field-input" type="number" placeholder="例如：200" />
+
+      <label class="field-label">車位坪數—坪</label>
+      <input id="pk-car-ping" class="field-input" type="number" placeholder="例如：10" />
+
+      <button class="calc-btn mt-5" onclick="calcParking()">計算單價</button>
+      <div id="r-parking" class="result-box hidden"></div>
+    </section>
+
+  </main>
+
+  <!-- ══════════ FOOTER / PROFILE ══════════ -->
+  <footer class="bg-slate-800 text-white mt-2 pt-8 pb-6">
+    <div class="max-w-3xl mx-auto px-4">
+
+      <!-- Profile + QR -->
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+
+        <!-- Left: Photo + Info -->
+        <div class="flex items-center gap-4">
+          <img src="hong-ning.jpg" alt="張宏寧"
+               class="w-24 h-24 rounded-2xl object-cover object-top shadow-lg border-2 border-slate-600"
+               onerror="this.style.display='none'" />
+          <div>
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="text-lg">🐾</span>
+              <span class="text-xs text-slate-400 font-medium tracking-wide uppercase">愛狗房仲</span>
+            </div>
+            <div class="text-2xl font-bold tracking-wide">張宏寧</div>
+            <div class="text-sm text-slate-300 mt-1.5">歡迎免費諮詢・專業誠懇</div>
+            <div class="text-xs text-slate-500 mt-1">買賣租屋・全程陪伴</div>
+          </div>
+        </div>
+
+        <!-- Right: QR Code -->
+        <div class="sm:ml-auto flex flex-col items-center gap-2">
+          <div class="bg-white rounded-2xl p-2.5 shadow-md">
+            <img src="line_QR.png" alt="LINE QR 碼" class="w-32 h-32 object-contain"
+                 onerror="this.parentElement.style.display='none'" />
+          </div>
+          <div class="text-center">
+            <div class="text-sm font-semibold text-slate-300">掃碼加 LINE 好友</div>
+            <div class="text-xs text-slate-500 mt-0.5">免費諮詢，立即回覆</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-slate-700 mt-6 pt-4 text-center text-xs text-slate-500">
+        © 2025 愛狗房仲張宏寧｜全能房產計算機 &nbsp;|&nbsp; 僅供參考，實際金額以銀行 / 政府核定為準
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════ SCRIPT ══════════ -->
+  <script>
+    // ─── Utility ───
+    const $ = id => document.getElementById(id);
+    const fmt = n => {
+      if (isNaN(n) || !isFinite(n)) return '—';
+      return n.toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    };
+    function showResult(id, html) {
+      const el = $(id);
+      el.innerHTML = html;
+      el.classList.remove('hidden');
+    }
+    function getActive(groupId) {
+      for (const b of document.querySelectorAll(`#${groupId} .opt-btn`)) {
+        if (b.classList.contains('active')) return b.dataset.val;
+      }
+      return null;
+    }
+
+    // ─── Tab Switching ───
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        btn.classList.add('active');
+        $('tab-' + btn.dataset.tab).classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // ─── Option Button Groups ───
+    document.querySelectorAll('[id^="g-"] .opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('[id^="g-"]');
+        group.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Tax deduct special handling
+        if (group.id === 'g-tax-deduct') {
+          const isItemized = btn.dataset.val === 'itemized';
+          $('deduct-auto').classList.toggle('hidden', isItemized);
+          $('deduct-manual').classList.toggle('hidden', !isItemized);
+        }
+      });
+    });
+
+    // ─── Update deduct display ───
+    function updateDeductDisplay() {
+      const sell = parseFloat($('tax-sell').value) || 0;
+      const d = Math.min(sell * 0.03, 30);
+      $('deduct-auto').textContent = `系統計算：$${fmt(d)} 萬（成交價 3%，上限 30 萬）`;
+    }
+
+    // ════════════════════════════════════
+    // Tab 1：房地合一稅試算
+    // ════════════════════════════════════
+    function calcTax() {
+      const sell = parseFloat($('tax-sell').value) || 0;
+      const cost = parseFloat($('tax-cost').value) || 0;
+      const land = parseFloat($('tax-land').value) || 0;
+
+      const deductMode = getActive('g-tax-deduct');
+      const deduct = deductMode === 'default'
+        ? Math.min(sell * 0.03, 30)
+        : (parseFloat($('tax-deduct-val').value) || 0);
+
+      const profit = sell - cost - land - deduct;
+      const period = getActive('g-tax-period');
+
+      if (profit <= 0) {
+        showResult('r-tax', `
+          <div class="text-center py-2">
+            <div style="font-size:1.4rem; font-weight:800; color:#16a34a;">無需繳稅</div>
+            <div class="text-xs text-slate-500 mt-1">課稅所得為 0 或負值</div>
+          </div>`);
+        return;
+      }
+
+      let tax = 0, rateLabel = '', note = '';
+      const periodLabels = { '0.45':'2 年內', '0.35':'2–5 年', '0.20':'5–10 年', '0.15':'10 年＋' };
+
+      if (period === 'owner6y') {
+        const taxable = Math.max(profit - 400, 0);
+        tax = taxable * 0.10;
+        rateLabel = '自用住宅 6 年優惠';
+        note = `前 400 萬免稅，超出 $${fmt(profit - 400)} 萬 × 10%`;
+      } else {
+        const r = parseFloat(period);
+        tax = profit * r;
+        rateLabel = `${periodLabels[period]}，稅率 ${(r * 100).toFixed(0)}%`;
+        note = `課稅所得 $${fmt(profit)} 萬 × ${(r * 100).toFixed(0)}%`;
+      }
+
+      showResult('r-tax', `
+        <div class="row"><span class="lbl">賣出總價</span><span class="val">$${fmt(sell)} 萬</span></div>
+        <div class="row"><span class="lbl">取得成本</span><span class="val">$${fmt(cost)} 萬</span></div>
+        <div class="row"><span class="lbl">土地漲價扣除</span><span class="val">$${fmt(land)} 萬</span></div>
+        <div class="row"><span class="lbl">費用扣除</span><span class="val">$${fmt(deduct)} 萬</span></div>
+        <hr class="divider" />
+        <div class="row"><span class="lbl">課稅所得</span><span class="val" style="color:#1e293b;font-weight:800;">$${fmt(profit)} 萬</span></div>
+        <div class="highlight-box" style="background:#fef2f2; border:1px solid #fecaca;">
+          <div class="sub">${rateLabel}｜${note}</div>
+          <div class="big" style="color:#dc2626;">應繳稅額 $${fmt(tax)} 萬</div>
+        </div>`);
+    }
+
+    // ════════════════════════════════════
+    // Tab 2：購屋能力試算
+    // ════════════════════════════════════
+    function calcAfford() {
+      const income = parseFloat($('af-income').value) || 0;
+      const down   = parseFloat($('af-down').value)   || 0;
+      const ratio  = parseFloat(getActive('g-af-ratio'));
+      const term   = parseFloat(getActive('g-af-term'));
+      const r = 2.3 / 100 / 12;
+      const n = term * 12;
+
+      const maxMonthly = income * ratio;
+      const maxLoan = maxMonthly * ((Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n)));
+      const maxPrice = maxLoan + down;
+      const ltvNote = `（約貸 ${fmt((maxLoan / maxPrice * 100).toFixed(0))}%）`;
+
+      showResult('r-afford', `
+        <div class="row"><span class="lbl">月收入</span><span class="val">$${fmt(income)} 萬</span></div>
+        <div class="row"><span class="lbl">月供上限（${(ratio*100).toFixed(0)}%）</span><span class="val">$${fmt(maxMonthly)} 萬</span></div>
+        <div class="row"><span class="lbl">自備款</span><span class="val">$${fmt(down)} 萬</span></div>
+        <div class="row"><span class="lbl">最高貸款額度${ltvNote}</span><span class="val">$${fmt(maxLoan)} 萬</span></div>
+        <div class="highlight-box" style="background:#eff6ff; border:1px solid #bfdbfe;">
+          <div class="sub">利率 2.3%，貸款 ${term} 年</div>
+          <div class="big" style="color:#1d4ed8;">購屋預算 $${fmt(maxPrice)} 萬</div>
+        </div>`);
+    }
+
+    // ════════════════════════════════════
+    // Tab 3：房貸試算
+    // ════════════════════════════════════
+    function calcLoan() {
+      const amount = parseFloat($('ln-amount').value) || 0;
+      const annRate = parseFloat($('ln-rate').value)  || 0;
+      const termYr  = parseFloat($('ln-term').value)  || 0;
+      const graceYr = parseFloat($('ln-grace').value) || 0;
+
+      const r = annRate / 100 / 12;
+      const totalMo = termYr * 12;
+      const graceMo = graceYr * 12;
+      const amortMo = totalMo - graceMo;
+
+      const gracePayment = amount * r;
+      const normalPayment = amortMo > 0
+        ? amount * r * Math.pow(1+r, amortMo) / (Math.pow(1+r, amortMo) - 1)
+        : 0;
+
+      const totalPaid = gracePayment * graceMo + normalPayment * amortMo;
+      const totalInterest = totalPaid - amount;
+
+      showResult('r-loan', `
+        <div class="row"><span class="lbl">貸款金額</span><span class="val">$${fmt(amount)} 萬</span></div>
+        <div class="row"><span class="lbl">年利率</span><span class="val">${annRate}%</span></div>
+        <div class="row"><span class="lbl">貸款期限</span><span class="val">${termYr} 年</span></div>
+        ${graceMo > 0 ? `
+        <hr class="divider" />
+        <div class="row"><span class="lbl">寬限期月付（只還息）</span><span class="val" style="color:#d97706;">$${fmt(gracePayment)} 萬</span></div>` : ''}
+        <div class="highlight-box" style="background:#eff6ff; border:1px solid #bfdbfe;">
+          <div class="sub">本息攤還月付金</div>
+          <div class="big" style="color:#1d4ed8;">$${fmt(normalPayment)} 萬 / 月</div>
+        </div>
+        <hr class="divider" />
+        <div class="row"><span class="lbl">總利息支出</span><span class="val" style="color:#dc2626;">$${fmt(totalInterest)} 萬</span></div>
+        <div class="row"><span class="lbl">還款總額</span><span class="val" style="font-weight:800;">$${fmt(totalPaid)} 萬</span></div>`);
+    }
+
+    // ════════════════════════════════════
+    // Tab 4：買賣雜費
+    // ════════════════════════════════════
+    function calcFees() {
+      const price = parseFloat($('fee-price').value) || 0;
+      const role  = getActive('g-fee-role');
+
+      let items = [], note = '';
+      if (role === 'buyer') {
+        const agency   = price * 0.01;
+        const regFee   = Math.max(price * 0.001, 0.1);
+        const notary   = 0.25;
+        const stamp    = price * 0.001;
+        const fire     = 0.20;
+        items = [
+          { lbl: '仲介服務費（成交價 1%）',       val: agency },
+          { lbl: '代書費（約 2.5 萬）',            val: notary },
+          { lbl: '登記規費（約 0.1%）',            val: regFee },
+          { lbl: '印花稅（千分之一）',             val: stamp  },
+          { lbl: '火險 + 地震險（首年）',          val: fire   },
+        ];
+        note = '買方費用合計（不含房屋稅、地價稅）';
+      } else {
+        const agency = price * 0.04;
+        const notary = 0.25;
+        const stamp  = price * 0.001;
+        items = [
+          { lbl: '仲介服務費（成交價 4%）',  val: agency },
+          { lbl: '代書費（約 2.5 萬）',       val: notary },
+          { lbl: '印花稅（千分之一）',        val: stamp  },
+        ];
+        note = '賣方費用合計（不含房地合一稅、土增稅）';
+      }
+      const total = items.reduce((s, i) => s + i.val, 0);
+      const rows  = items.map(i => `<div class="row"><span class="lbl">${i.lbl}</span><span class="val">約 $${fmt(i.val)} 萬</span></div>`).join('');
+
+      showResult('r-fees', `
+        ${rows}
+        <div class="highlight-box" style="background:#fffbeb; border:1px solid #fde68a;">
+          <div class="sub">${note}</div>
+          <div class="big" style="color:#b45309;">約 $${fmt(total)} 萬</div>
+        </div>
+        <div class="note">* 以上為估計值，實際費用依各案件而異。如需精確試算，歡迎直接聯繫張宏寧 🐾</div>`);
+    }
+
+    // ════════════════════════════════════
+    // Tab 5：坪數換算
+    // ════════════════════════════════════
+    function pingToM2() {
+      const p = parseFloat($('area-ping').value);
+      $('area-m2').value = p ? (p * 3.30579).toFixed(4) : '';
+    }
+    function m2ToPing() {
+      const m = parseFloat($('area-m2').value);
+      $('area-ping').value = m ? (m * 0.3025).toFixed(4) : '';
+    }
+
+    // ════════════════════════════════════
+    // Tab 6：車位拆算
+    // ════════════════════════════════════
+    function calcParking() {
+      const totalPrice = parseFloat($('pk-total-price').value) || 0;
+      const totalPing  = parseFloat($('pk-total-ping').value)  || 0;
+      const carPrice   = parseFloat($('pk-car-price').value)   || 0;
+      const carPing    = parseFloat($('pk-car-ping').value)    || 0;
+
+      const housePrice = totalPrice - carPrice;
+      const housePing  = totalPing  - carPing;
+
+      if (housePing <= 0) {
+        showResult('r-parking', `<div style="color:#dc2626; font-size:0.85rem;">坪數計算錯誤，請確認輸入值</div>`);
+        return;
+      }
+
+      const unitPrice    = housePrice / housePing;
+      const carUnitPrice = carPing > 0 ? carPrice / carPing : 0;
+
+      showResult('r-parking', `
+        <div class="row"><span class="lbl">房屋總價（含車位）</span><span class="val">$${fmt(totalPrice)} 萬</span></div>
+        <div class="row"><span class="lbl">車位價格</span><span class="val">$${fmt(carPrice)} 萬（${fmt(carPing)} 坪）</span></div>
+        <hr class="divider" />
+        <div class="row"><span class="lbl">房屋實際價格</span><span class="val">$${fmt(housePrice)} 萬</span></div>
+        <div class="row"><span class="lbl">房屋實際坪數</span><span class="val">${fmt(housePing)} 坪</span></div>
+        <div class="highlight-box" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+          <div class="sub">房屋（不含車位）每坪單價</div>
+          <div class="big" style="color:#15803d;">$${fmt(unitPrice)} 萬 / 坪</div>
+        </div>
+        ${carUnitPrice > 0 ? `<div class="row" style="margin-top:.5rem;"><span class="lbl">車位每坪單價</span><span class="val">$${fmt(carUnitPrice)} 萬 / 坪</span></div>` : ''}`);
+    }
+  </script>
+</body>
+</html>
