@@ -542,13 +542,13 @@
 
       let items = [], note = '';
       if (role === 'buyer') {
-        const agency   = price * 0.01;
+        const agency   = price * 0.02;
         const regFee   = Math.max(price * 0.001, 0.1);
         const notary   = 0.25;
         const stamp    = price * 0.001;
         const fire     = 0.20;
         items = [
-          { lbl: '仲介服務費（成交價 1%）',       val: agency },
+          { lbl: '仲介服務費（成交價 2%）',       val: agency },
           { lbl: '代書費（約 2.5 萬）',            val: notary },
           { lbl: '登記規費（約 0.1%）',            val: regFee },
           { lbl: '印花稅（千分之一）',             val: stamp  },
