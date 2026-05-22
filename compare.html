@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>物件比較表｜愛狗房仲張宏寧</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>" />
+  <style>
+    body { background: #f8f7f4; }
+    .card-a { border-top: 4px solid #dc2626; }
+    .card-b { border-top: 4px solid #2563eb; }
+    .card-c { border-top: 4px solid #16a34a; }
+    .badge-a { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-b { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .badge-c { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .row-label { color: #6b7280; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; }
+    .highlight { background: #fffbeb; border-radius: 0.375rem; }
+    @media (max-width: 768px) {
+      .compare-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+
+  <!-- Header -->
+  <div class="max-w-5xl mx-auto mb-8">
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-2xl">🐾</span>
+      <span class="text-sm text-gray-500 font-medium">愛狗房仲 張宏寧</span>
+    </div>
+    <h1 class="text-2xl font-bold text-gray-800">物件比較表</h1>
+    <p class="text-sm text-gray-500 mt-1" id="last-updated">資料載入中...</p>
+  </div>
+
+  <!-- Setup Banner (hidden after data loads) -->
+  <div id="setup-banner" class="max-w-5xl mx-auto mb-6 hidden">
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+      <strong>📋 啟用 Google Sheet 同步：</strong>
+      開啟 <a href="https://docs.google.com/spreadsheets/d/1Is0wPKXygSUoLpU9WO8KYOJMYGKNVMLxmdYrVqLzNxs" target="_blank" class="underline font-medium">房產比較表</a>
+      → 檔案 → 共用 → 任何人可以檢視 → 然後 檔案 → 發布到網路 → CSV → 發布。
+      完成後重新整理此頁面即可自動同步。
+    </div>
+  </div>
+
+  <!-- Comparison Grid -->
+  <div id="compare-container" class="max-w-5xl mx-auto"></div>
+
+  <!-- Footer -->
+  <div class="max-w-5xl mx-auto mt-10 text-center">
+    <a href="https://docs.google.com/spreadsheets/d/1Is0wPKXygSUoLpU9WO8KYOJMYGKNVMLxmdYrVqLzNxs"
+       target="_blank"
+       class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-green-600 transition-colors">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      在 Google Sheets 中編輯此表
+    </a>
+    <div class="mt-4 text-xs text-gray-400">
+      <a href="index.html" class="hover:text-gray-600">← 回到計算機</a>
+      &nbsp;·&nbsp;
+      <a href="profile.html" class="hover:text-gray-600">聯絡張宏寧</a>
+    </div>
+  </div>
+
+<script>
+// ── Google Sheet 設定 ──────────────────────────────────────────
+const SHEET_ID = '1Is0wPKXygSUoLpU9WO8KYOJMYGKNVMLxmdYrVqLzNxs';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?output=csv`;
+
+// ── 預設資料（當 Sheet 未公開時使用）─────────────────────────
+const DEFAULT_DATA = [
+  ['項目',    '物件A：冠君富域 NO5',          '物件B：新東街美廈',              '物件C：富域 3'],
+  ['地址',    '至公路 602 巷 9 號 5 樓之 1',  '新東街 136 巷 38 號 3 樓之 2',   '富域街 68 號 8 樓之 6'],
+  ['總價',    '750 萬',                       '788 萬',                         '752 萬'],
+  ['格局',    '3 房 2 廳 2 衛',               '2 房 2 廳 1 衛',                 '2 房 2 廳 1 衛'],
+  ['屋齡',    '4.4 年',                       '5.2 年',                         '3.1 年'],
+  ['建物坪數','30.347 坪',                    '31.992 坪',                      '27.418 坪'],
+  ['主建物',  '20.038 坪',                    '19.433 坪',                      '13.842 坪'],
+  ['樓層',    '5 / 5（頂樓）',                '2 / 5',                          '8 / 10'],
+  ['主要特色','巨蛋視野、三房配置、土地持分大','北苗商圈、大兩房空間、採光通風佳','精裝潢、市區新案、屋齡最輕'],
+];
+
+// ── CSV 解析 ──────────────────────────────────────────────────
+function parseCSV(text) {
+  return text.trim().split('\n').map(line => {
+    const cells = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    cells.push(cur.trim());
+    return cells;
+  });
+}
+
+// ── 顏色設定 ──────────────────────────────────────────────────
+const COLORS = {
+  card:  ['card-a', 'card-b', 'card-c'],
+  badge: ['badge-a', 'badge-b', 'badge-c'],
+  text:  ['text-red-600', 'text-blue-600', 'text-green-600'],
+};
+
+// ── 特色標籤渲染 ──────────────────────────────────────────────
+function renderTags(text, colorIdx) {
+  const tags = text.split(/[、,，]/).map(t => t.trim()).filter(Boolean);
+  return tags.map(t =>
+    `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium mr-1 mb-1 ${COLORS.badge[colorIdx]}">${t}</span>`
+  ).join('');
+}
+
+// ── 亮點行（總價）─────────────────────────────────────────────
+const HIGHLIGHT_ROWS = ['總價'];
+
+// ── 渲染比較卡片 ──────────────────────────────────────────────
+function render(rows) {
+  if (rows.length < 2) return;
+  const headers = rows[0];          // ['項目', 'A', 'B', 'C']
+  const colCount = headers.length - 1;
+  const container = document.getElementById('compare-container');
+
+  // Mobile: single column summary cards
+  let html = `<div class="compare-grid grid gap-5" style="grid-template-columns: repeat(${Math.min(colCount, 3)}, 1fr);">`;
+
+  for (let c = 1; c <= colCount; c++) {
+    const ci = c - 1;
+    html += `
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden ${COLORS.card[ci]}">
+        <div class="px-5 pt-5 pb-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-gray-400">物件 ${'ABC'[ci]}</span>
+          </div>
+          <h2 class="text-lg font-bold text-gray-800 leading-tight">${headers[c]}</h2>
+        </div>
+        <div class="px-5 pb-5 space-y-3">`;
+
+    for (let r = 1; r < rows.length; r++) {
+      const label = rows[r][0];
+      const value = rows[r][c] || '—';
+      const isHL  = HIGHLIGHT_ROWS.includes(label);
+      const isTag = label === '主要特色';
+
+      html += `
+          <div class="${isHL ? 'highlight px-2 py-1' : ''}">
+            <div class="row-label">${label}</div>
+            <div class="${isHL ? 'text-xl font-bold ' + COLORS.text[ci] : 'text-sm font-medium text-gray-700'} mt-0.5">
+              ${isTag ? renderTags(value, ci) : value}
+            </div>
+          </div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// ── 主流程 ────────────────────────────────────────────────────
+async function init() {
+  let fromSheet = false;
+  try {
+    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('not published');
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length >= 2 && rows[0].length >= 2) {
+      render(rows);
+      fromSheet = true;
+      document.getElementById('last-updated').textContent =
+        '✅ 資料來源：Google Sheets（' + new Date().toLocaleString('zh-TW') + '）';
+    } else throw new Error('empty');
+  } catch {
+    render(DEFAULT_DATA);
+    document.getElementById('last-updated').textContent =
+      '📄 資料來源：預設資料（尚未連結 Google Sheets）';
+    document.getElementById('setup-banner').classList.remove('hidden');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
