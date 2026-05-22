@@ -62,9 +62,8 @@
   </div>
 
 <script>
-// ── Google Sheet 設定 ──────────────────────────────────────────
-const SHEET_ID = '1Is0wPKXygSUoLpU9WO8KYOJMYGKNVMLxmdYrVqLzNxs';
-const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?output=csv`;
+// ── Google Apps Script Web App ────────────────────────────────
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbzACXIFS-onWGobfD1QQhCWJ6tp4U-3SLbJJE1-ww_wC0jI5rCy1hWw6PPr2uy2SqSsDA/exec';
 
 // ── 預設資料（當 Sheet 未公開時使用）─────────────────────────
 const DEFAULT_DATA = [
@@ -79,21 +78,6 @@ const DEFAULT_DATA = [
   ['主要特色','巨蛋視野、三房配置、土地持分大','北苗商圈、大兩房空間、採光通風佳','精裝潢、市區新案、屋齡最輕'],
 ];
 
-// ── CSV 解析 ──────────────────────────────────────────────────
-function parseCSV(text) {
-  return text.trim().split('\n').map(line => {
-    const cells = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
-      else { cur += ch; }
-    }
-    cells.push(cur.trim());
-    return cells;
-  });
-}
 
 // ── 顏色設定 ──────────────────────────────────────────────────
 const COLORS = {
@@ -159,24 +143,21 @@ function render(rows) {
 
 // ── 主流程 ────────────────────────────────────────────────────
 async function init() {
-  let fromSheet = false;
   try {
-    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('not published');
-    const text = await res.text();
-    const rows = parseCSV(text);
+    const res = await fetch(SHEET_API_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch failed');
+    const rows = await res.json();
     if (rows.length >= 2 && rows[0].length >= 2) {
       render(rows);
-      fromSheet = true;
       document.getElementById('last-updated').textContent =
         '✅ 資料來源：Google Sheets（' + new Date().toLocaleString('zh-TW') + '）';
-    } else throw new Error('empty');
-  } catch {
-    render(DEFAULT_DATA);
-    document.getElementById('last-updated').textContent =
-      '📄 資料來源：預設資料（尚未連結 Google Sheets）';
-    document.getElementById('setup-banner').classList.remove('hidden');
-  }
+      return;
+    }
+  } catch {}
+  render(DEFAULT_DATA);
+  document.getElementById('last-updated').textContent =
+    '📄 資料來源：預設資料（尚未連結 Google Sheets）';
+  document.getElementById('setup-banner').classList.remove('hidden');
 }
 
 init();
